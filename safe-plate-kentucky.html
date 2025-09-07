@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Safe Plate Kentucky (Prototype)</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Ranchers&family=Merriweather:wght@300;400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --bg: #f7fbff;
+        --surface: #fff;
+        --text: #1b1b1b;
+        --muted: #4c4c4c;
+        --border: #d6e2f0;
+        --ring: #1a73e8;
+        --accent: #0ea5e9;
+        --c-beef: #e11d48;
+        --c-poultry: #f59e0b;
+        --c-produce: #10b981;
+        --c-seafood: #3b82f6;
+        --c-dairy: #d97706;
+        --c-packaged: #6b7280;
+        --c-allergen: #ffb703;
+        --shadow: 0 6px 16px rgba(21, 87, 153, 0.08);
+        --radius: 12px;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Merriweather", Georgia, serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+      }
+
+      .wrap {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 0.5rem;
+      }
+
+      h1 {
+        font-family: "Ranchers", system-ui, sans-serif;
+        margin: 0.25rem 0 0.25rem;
+        font-size: 2.2rem;
+        color: #0f172a;
+      }
+
+      /* keep your explainer text exactly as-is */
+      .explainer {
+        font-size: 1rem;
+        color: #2b2b2b;
+        margin: 0.25rem 0 0.75rem;
+        max-width: 72ch;
+      }
+
+      /* a11y helper */
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      /* resilient controls grid */
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-auto-flow: row dense;
+        gap: 0.5rem;
+        align-items: center;
+        margin: 0.25rem 0 0.4rem;
+      }
+
+      @media (max-width: 980px) {
+        .controls {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 760px) {
+        .controls {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* controls basics */
+      .controls input[type="search"],
+      .controls select {
+        padding: 0.55rem 0.65rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: var(--text);
+        font-size: 0.95rem;
+        outline: none;
+      }
+
+      .controls input[type="search"]:focus,
+      .controls select:focus {
+        border-color: var(--ring);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 25%, transparent);
+      }
+
+      .controls label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+      }
+
+      /* hazard chips */
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem 0.5rem;
+        border: 0;
+        padding: 0;
+        margin: 0;
+      }
+
+      .chips label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.25rem 0.5rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #fff;
+        font-size: 0.85rem;
+      }
+
+      .chips input[type="checkbox"] {
+        accent-color: var(--ring);
+      }
+
+      #resetFilters {
+        justify-self: start;
+        padding: 0.45rem 0.65rem;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: #fff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      #resetFilters:hover {
+        border-color: var(--ring);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 20%, transparent);
+      }
+
+      /* search mode radios */
+      .inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.9rem;
+      }
+
+      /* legend */
+      .legend {
+        margin: 0.15rem auto 0.4rem;
+        text-align: center;
+      }
+      .legend-inner {
+        display: inline-flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.35rem 0.6rem;
+        padding: 0.15rem 0;
+      }
+      .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.22rem 0.5rem;
+        border: 1px solid var(--border);
+        background: #fff;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        line-height: 1;
+      }
+      .legend-item .swatch {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .swatch--beef {
+        background: var(--c-beef);
+      }
+      .swatch--poultry {
+        background: var(--c-poultry);
+      }
+      .swatch--produce {
+        background: var(--c-produce);
+      }
+      .swatch--seafood {
+        background: var(--c-seafood);
+      }
+      .swatch--dairy {
+        background: var(--c-dairy);
+      }
+      .swatch--packaged {
+        background: var(--c-packaged);
+      }
+
+      /* cards */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0.8rem;
+        margin: 0.5rem 0;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+      }
+      .card::before {
+        content: "";
+        position: absolute;
+        inset: 0 0 0 auto;
+        width: 6px;
+        background: #ddd;
+      }
+      .card--beef::before {
+        background: var(--c-beef);
+      }
+      .card--poultry::before {
+        background: var(--c-poultry);
+      }
+      .card--produce::before {
+        background: var(--c-produce);
+      }
+      .card--seafood::before {
+        background: var(--c-seafood);
+      }
+      .card--dairy::before {
+        background: var(--c-dairy);
+      }
+      .card--packaged::before {
+        background: var(--c-packaged);
+      }
+      .card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        padding: 0.2rem 0.55rem;
+        border-radius: 6px;
+        font-weight: 700;
+        background: var(--c-allergen);
+        color: #000;
+        font-size: 0.8rem;
+      }
+      .date {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .card-subhead {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        margin: 0.45rem 0 0;
+      }
+      .icon {
+        width: 22px;
+        height: 22px;
+        flex-shrink: 0;
+      }
+      .icon--beef {
+        color: var(--c-beef);
+      }
+      .icon--poultry {
+        color: var(--c-poultry);
+      }
+      .icon--produce {
+        color: var(--c-produce);
+      }
+      .icon--seafood {
+        color: var(--c-seafood);
+      }
+      .icon--dairy {
+        color: var(--c-dairy);
+      }
+      .icon--packaged {
+        color: var(--c-packaged);
+      }
+      .card h3 {
+        margin: 0.2rem 0 0.15rem;
+        font-size: 1.12rem;
+        line-height: 1.35;
+      }
+      .reason {
+        margin: 0.15rem 0 0.45rem;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+      .link {
+        display: inline-block;
+        margin-top: 0.4rem;
+        text-decoration: none;
+        font-weight: 700;
+        color: #0b5fd7;
+        border: 1px solid #0b5fd7;
+        padding: 0.42rem 0.65rem;
+        border-radius: 8px;
+      }
+      .link:hover {
+        background: #0b5fd7;
+        color: #fff;
+      }
+
+      /* highlight + empty state + footer */
+      mark.hl {
+        background: #fff3a3;
+        border-radius: 3px;
+        padding: 0 0.1em;
+      }
+      .callout {
+        background: #fff7e6;
+        border: 1px solid #ffd08a;
+        color: #5b3d00;
+        padding: 0.8rem 1rem;
+        border-radius: var(--radius);
+        margin: 0.6rem 0;
+      }
+      .foot {
+        color: var(--muted);
+        margin-top: 0.9rem;
+        border-top: 1px solid var(--border);
+        padding-top: 0.6rem;
+        font-size: 0.9rem;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="wrap">
+      <h1>Safe Plate Kentucky</h1>
+      <p class="explainer">
+        Safe Plate Kentucky helps residents quickly scan food recalls that
+        affect our state. Each alert shows what product is involved, why it was
+        recalled, and where it was distributed. This demo uses sample data now
+        and will connect to official USDA recall information in a future
+        release.
+      </p>
+
+      <div class="controls" role="region" aria-label="Filters">
+        <button id="resetFilters" type="button" aria-label="Reset filters">
+          Reset
+        </button>
+
+        <label
+          ><input type="checkbox" id="toggleKyOnly" checked /> Show Kentucky
+          Only</label
+        >
+
+        <input
+          id="searchInput"
+          type="search"
+          placeholder="Search (e.g., chicken, allergen, beef)"
+          aria-label="Search recalls"
+        />
+
+        <!-- Search mode -->
+        <label class="inline"
+          ><input type="radio" name="qmode" value="any" checked /> Any
+          word</label
+        >
+        <label class="inline"
+          ><input type="radio" name="qmode" value="all" /> All words</label
+        >
+
+        <!-- Multi-hazard chips -->
+        <fieldset class="chips" aria-label="Hazard filters">
+          <legend class="sr-only">Filter by hazard</legend>
+          <label
+            ><input type="checkbox" class="haz" value="" checked /> All</label
+          >
+          <label
+            ><input type="checkbox" class="haz" value="Listeria" />
+            Listeria</label
+          >
+          <label
+            ><input type="checkbox" class="haz" value="E. coli" /> E.
+            coli</label
+          >
+          <label
+            ><input type="checkbox" class="haz" value="Allergen" />
+            Allergen</label
+          >
+        </fieldset>
+
+        <!-- Date range -->
+        <select id="dateRange" aria-label="Date range">
+          <option value="any">Any time</option>
+          <option value="7">Past 7 days</option>
+          <option value="30">Past 30 days</option>
+          <option value="365">Past year</option>
+        </select>
+
+        <select id="sortBy" aria-label="Sort by date">
+          <option value="dateDesc">Newest first</option>
+          <option value="dateAsc">Oldest first</option>
+        </select>
+      </div>
+    </header>
+
+    <!-- Centered, compact legend that updates to current categories -->
+    <section class="wrap legend" aria-label="Icon legend">
+      <h2 class="sr-only">Categories in view</h2>
+      <div class="legend-inner" id="legend"></div>
+    </section>
+
+    <main class="wrap" id="results" aria-live="polite"></main>
+    <div id="a11y-status" class="sr-only" aria-live="polite"></div>
+
+    <footer class="wrap foot">
+      <small>Prototype for weekend build. Dummy data used.</small>
+    </footer>
+
+    <script>
+      /* ===== Dummy data (keep your structure) ===== */
+      const RECALLS = [
+        {
+          recallNumber: "R-123-2025",
+          date: "2025-08-22",
+          product: "Ready-to-eat chicken salad",
+          reason: "Possible Listeria contamination",
+          states: ["KY", "IN", "OH"],
+          hazard: "Listeria",
+          category: "poultry",
+          link: "#",
+        },
+        {
+          recallNumber: "R-118-2025",
+          date: "2025-08-18",
+          product: "Ground beef patties (85% lean)",
+          reason: "Possible E. coli O157:H7",
+          states: ["IL", "MO", "IA"],
+          hazard: "E. coli",
+          category: "beef",
+          link: "#",
+        },
+        {
+          recallNumber: "R-110-2025",
+          date: "2025-08-10",
+          product: "Frozen mixed vegetables",
+          reason: "Undeclared allergens (soy)",
+          states: ["KY", "TN", "WV"],
+          hazard: "Allergen",
+          category: "produce",
+          link: "#",
+        },
+      ];
+
+      /* ===== Grab controls ===== */
+      const elResults = document.getElementById("results");
+      const elLegend = document.getElementById("legend");
+      const elToggleKy = document.getElementById("toggleKyOnly");
+      const elSearch = document.getElementById("searchInput");
+      const elSort = document.getElementById("sortBy");
+      const elDateRange = document.getElementById("dateRange");
+      const qMode = () =>
+        document.querySelector('input[name="qmode"]:checked')?.value || "any";
+      const hazChecks = () => Array.from(document.querySelectorAll(".haz"));
+
+      /* ===== Helpers ===== */
+      const tokens = (s) =>
+        (s || "").trim().toLowerCase().split(/\s+/).filter(Boolean);
+      const inKentucky = (states) =>
+        Array.isArray(states) && states.includes("KY");
+
+      function parseISODateUTC(iso) {
+        // Force midnight UTC to avoid TZ drift
+        return new Date(`${iso}T00:00:00Z`).getTime();
+      }
+      function withinDays(iso, days) {
+        if (days === "any") return true;
+        const d = parseISODateUTC(iso);
+        const span = parseInt(days, 10) * 24 * 60 * 60 * 1000;
+        return Date.now() - d <= span;
+      }
+
+      function debounce(fn, ms = 120) {
+        let t;
+        return (...a) => {
+          clearTimeout(t);
+          t = setTimeout(() => fn(...a), ms);
+        };
+      }
+
+      // ===== Persistence (localStorage) =====
+      const STORE_KEY = "spk.filters.v1";
+
+      function readState() {
+        try {
+          return JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
+        } catch {
+          return {};
+        }
+      }
+
+      function writeState(state) {
+        try {
+          localStorage.setItem(STORE_KEY, JSON.stringify(state));
+        } catch {}
+      }
+
+      function collectState() {
+        return {
+          kyOnly: document.getElementById("toggleKyOnly").checked,
+          q: document.getElementById("searchInput").value || "",
+          qmode:
+            (document.querySelector('input[name="qmode"]:checked') || {})
+              .value || "any",
+          hazards: Array.from(document.querySelectorAll(".haz"))
+            .filter((cb) => cb.checked)
+            .map((cb) => cb.value),
+          dateRange: document.getElementById("dateRange").value,
+          sortBy: document.getElementById("sortBy").value,
+        };
+      }
+
+      function applyState(state) {
+        if (!state) return;
+        const ky = document.getElementById("toggleKyOnly");
+        const q = document.getElementById("searchInput");
+        const dr = document.getElementById("dateRange");
+        const sb = document.getElementById("sortBy");
+
+        if (typeof state.kyOnly === "boolean") ky.checked = state.kyOnly;
+        if (typeof state.q === "string") q.value = state.q;
+        if (typeof state.qmode === "string") {
+          const r = document.querySelector(
+            `input[name="qmode"][value="${state.qmode}"]`
+          );
+          if (r) r.checked = true;
+        }
+        if (Array.isArray(state.hazards)) {
+          const all = new Set(state.hazards);
+          document.querySelectorAll(".haz").forEach((cb) => {
+            cb.checked = all.has(cb.value);
+          });
+        }
+        if (state.dateRange) dr.value = state.dateRange;
+        if (state.sortBy) sb.value = state.sortBy;
+      }
+
+      // escape + safe highlight
+      const escapeHTML = (s) =>
+        String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      function hiSafe(text, words) {
+        const safe = escapeHTML(text ?? "");
+        if (!words || !words.length) return safe;
+        const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const re = new RegExp("(" + words.map(esc).join("|") + ")", "ig");
+        return safe.replace(re, (m) => `<mark class="hl">${m}</mark>`);
+      }
+
+      // icons
+      const ICONS = {
+        beef: (cls) =>
+          `<svg xmlns="http://www.w3.org/2000/svg" class="icon ${cls} icon--beef" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v12H4z"/></svg>`,
+        poultry: (cls) =>
+          `<svg xmlns="http://www.w3.org/2000/svg" class="icon ${cls} icon--poultry" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/></svg>`,
+        produce: (cls) =>
+          `<svg xmlns="http://www.w3.org/2000/svg" class="icon ${cls} icon--produce" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>`,
+        seafood: (cls) =>
+          `<svg xmlns="http://www.w3.org/2000/svg" class="icon ${cls} icon--seafood" viewBox="0 0 24 24" fill="currentColor"><path d="M3 12s4-5 9-5 9 5 9 5-4 5-9 5-9-5-9-5z"/><circle cx="10" cy="12" r="1.5"/></svg>`,
+        dairy: (cls) =>
+          `<svg xmlns="http://www.w3.org/2000/svg" class="icon ${cls} icon--dairy" viewBox="0 0 24 24" fill="currentColor"><path d="M8 3h8v4H8zM7 7h10v13H7z"/></svg>`,
+        packaged: (cls) =>
+          `<svg xmlns="http://www.w3.org/2000/svg" class="icon ${cls} icon--packaged" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>`,
+      };
+      const iconFor = (cat) => {
+        const key = String(cat || "").toLowerCase();
+        return ICONS[key] ? ICONS[key]("") : "";
+      };
+
+      // legend shows only categories present in current view
+      function renderLegend(list) {
+        const cats = Array.from(
+          new Set(
+            list.map((r) => (r.category || "").toLowerCase()).filter(Boolean)
+          )
+        );
+        const labels = {
+          beef: "Beef",
+          poultry: "Poultry",
+          produce: "Produce",
+          seafood: "Seafood",
+          dairy: "Dairy",
+          packaged: "Packaged",
+        };
+        elLegend.innerHTML =
+          cats
+            .map(
+              (k) =>
+                `<div class="legend-item"><span class="swatch swatch--${k}"></span><span>${
+                  labels[k] || k
+                }</span></div>`
+            )
+            .join("") ||
+          `<div class="legend-item"><span>No categories in view</span></div>`;
+      }
+
+      function render(list) {
+        elResults.innerHTML = "";
+        if (!list.length) {
+          elResults.innerHTML = `<div class="callout">
+          No recalls match your filters. Try turning off <strong>Show Kentucky-only</strong>, clearing search, or selecting a different hazard.
+        </div>`;
+          renderLegend([]);
+          const status = document.getElementById("a11y-status");
+          if (status) status.textContent = `0 recalls shown`;
+          return;
+        }
+
+        renderLegend(list);
+        const qs = tokens(elSearch.value);
+
+        list.forEach((r) => {
+          const cat = (r.category || "").toLowerCase();
+          const card = document.createElement("article");
+          card.className = `card card--${cat}`;
+          const product = hiSafe(r.product, qs);
+          const reason = hiSafe(r.reason, qs);
+
+          card.innerHTML = `
+          <div class="card-head">
+            <span class="tag">${escapeHTML(r.hazard)}</span>
+            <span class="date">${new Date(r.date).toLocaleDateString()}</span>
+          </div>
+          <div class="card-subhead">
+            ${iconFor(r.category)}
+            <h3>${product}</h3>
+          </div>
+          <p class="reason">${reason}</p>
+          <p class="meta"><strong>Recall #:</strong> ${escapeHTML(
+            r.recallNumber
+          )} • <strong>States:</strong> ${escapeHTML(r.states.join(", "))}</p>
+          ${
+            r.link
+              ? `<a class="link" href="${escapeHTML(
+                  r.link
+                )}" target="_blank" rel="noopener">More info</a>`
+              : ""
+          }
+        `;
+          elResults.appendChild(card);
+        });
+
+        const status = document.getElementById("a11y-status");
+        if (status)
+          status.textContent = `${list.length} recall${
+            list.length === 1 ? "" : "s"
+          } shown`;
+      }
+
+      const applyFilters = debounce(function () {
+        const words = tokens(elSearch.value);
+        const mode = qMode(); // "any" | "all"
+        const kyOnly = elToggleKy.checked;
+        const sortBy = elSort.value;
+        const range = elDateRange.value;
+
+        // hazards: if "All" (empty value) is checked, ignore others
+        const hz = hazChecks()
+          .filter((cb) => cb.checked)
+          .map((cb) => cb.value);
+        const allHazard = hz.includes("");
+        const pickedHaz = new Set(hz.filter(Boolean));
+
+        let list = RECALLS.slice();
+
+        if (kyOnly) list = list.filter((r) => inKentucky(r.states));
+        if (!allHazard && pickedHaz.size)
+          list = list.filter((r) => pickedHaz.has(r.hazard));
+        list = list.filter((r) => withinDays(r.date, range));
+
+        if (words.length) {
+          list = list.filter((r) => {
+            const hay =
+              `${r.product} ${r.reason} ${r.hazard} ${r.recallNumber}`.toLowerCase();
+            return mode === "all"
+              ? words.every((w) => hay.includes(w))
+              : words.some((w) => hay.includes(w));
+          });
+        }
+
+        // Sort using UTC parser for consistency with range filter
+        list.sort((a, b) => {
+          const da = parseISODateUTC(a.date);
+          const db = parseISODateUTC(b.date);
+          return sortBy === "dateAsc" ? da - db : db - da;
+        });
+
+        writeState(collectState());
+        render(list);
+      }, 80);
+
+      // Events (lean + no duplicates)
+      document
+        .getElementById("toggleKyOnly")
+        .addEventListener("input", applyFilters);
+      document
+        .getElementById("searchInput")
+        .addEventListener("input", applyFilters);
+      document
+        .getElementById("dateRange")
+        .addEventListener("change", applyFilters);
+      document
+        .getElementById("sortBy")
+        .addEventListener("change", applyFilters);
+      document.querySelectorAll('input[name="qmode"], .haz').forEach((el) => {
+        el.addEventListener("input", applyFilters);
+      });
+
+      // Reset (restore defaults, persist, re-render)
+      document.getElementById("resetFilters")?.addEventListener("click", () => {
+        const defaults = {
+          kyOnly: true,
+          q: "",
+          qmode: "any",
+          hazards: [""], // "All" chip only
+          dateRange: "any",
+          sortBy: "dateDesc",
+        };
+        applyState(defaults);
+        writeState(defaults);
+        applyFilters();
+      });
+
+      // === Initial load ===
+      (function init() {
+        const saved = readState();
+        if (saved && Object.keys(saved).length) {
+          // hydrate controls from saved state
+          applyState(saved);
+        }
+        // render once so results show immediately
+        applyFilters();
+      })();
+    </script>
+  </body>
+</html>
