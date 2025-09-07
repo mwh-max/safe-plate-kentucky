@@ -12,7 +12,7 @@ This demo uses dummy data for speed. The UI and data shape are ready for a swap 
 - Search by product, hazard, or recall #
 - Hazard filter (Listeria, E. coli, Allergen)
 - Sort by newest/oldest
-- Mobile-friendly card layout (Montserrat)
+- Mobile-friendly card layout (Merriweather + Ranchers)
 
 ---
 
@@ -21,7 +21,9 @@ This demo uses dummy data for speed. The UI and data shape are ready for a swap 
 ```bash
 # clone your repo, then:
 cd safe-plate-kentucky
+
 # open in VS Code and use Live Server, or:
 python -m http.server 5173
+
 # visit http://localhost:5173
 ```
